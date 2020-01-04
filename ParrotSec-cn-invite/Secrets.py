@@ -1,0 +1,5 @@
+SECRETS = {
+        "keys":{
+            "secret_key":"\x91g\x89*h\x95w\x7f\xcckE\x9d^\x84\xd6\x00\xc6\x1b\xc7\xdb\x0b\x89\x8b\xee",
+            }
+        }
