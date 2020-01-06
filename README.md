@@ -60,3 +60,6 @@ sudo vi /etc/proxychains.conf
 
 **默认端口3000，但现在的浏览器都针对ssl做了认证，非安全或者字节数过大的一律屏蔽**
 `http://127.0.0.1:3000`
+
+*虽然dradis和beef-xss默认占用了3000端口，我选择修改beef-xss的默认端口*
+`sudo vi /etc/beef-xss/config.yaml`
