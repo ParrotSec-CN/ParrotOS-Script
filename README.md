@@ -7,6 +7,7 @@ ParrotOS-Script
 ├─ README.md
 ├─ ParrotSec-cn-invite  (Parrot-cn_QQ群问题2)
 ├─ burpsuite_zh.sh  (启动汉化Burpsuite脚本)
+├─ core_zh.php  (官网中文语言文件)
 ├─ parrot-upgrade.sh  (ParrotOS官方更新升级脚本)
 └─ parrot-update.sh  (ParrotOS自定义更新升级脚本)
 </code></pre>
@@ -60,6 +61,8 @@ sudo vi /etc/proxychains.conf
 
 **默认端口3000，但现在的浏览器都针对ssl做了认证，非安全或者字节数过大的一律屏蔽**
 `http://127.0.0.1:3000`
+
+[参考](https://dradisframework.com/support/guides/customization/ssl_lets_encrypt.html)
 
 *虽然dradis和beef-xss默认占用了3000端口，我选择修改beef-xss的默认端口*
 `sudo vi /etc/beef-xss/config.yaml`
