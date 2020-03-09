@@ -14,9 +14,17 @@ Right="${Font_color_suffix}${Green_font_prefix}[ --> ]${Clean_color_suffix}"
 
 function remove_clean()
 {
+    echo -e ""
     echo -e "${Info} 清除无用软件包，并清理相关垃圾文件"
     apt -y autoremove
     apt -y clean autoclean
+}
+
+function upgradable()
+{
+    echo -e ""
+    echo -e "${Info} 查看可升级的软件包"
+    apt list --upgradable -a
 }
 
 function write_source()
@@ -65,9 +73,17 @@ function write_ustc_source()
 
 function update()
 {
+    echo -e ""
+    echo -e "${Info} 执行apt update"
     apt update || echo failed to update index lists
+    echo -e ""
+    echo -e "${Info} 执行dpkg --configure"
     dpkg --configure -a || echo failed to fix interrupted upgrades
+    echo -e ""
+    echo -e "${Info} 执行apt --fix-broken --fix-missing"
     apt --fix-broken --fix-missing install || echo failed to fix conflicts
+    echo -e ""
+    echo -e "${Info} 执行apt --allow-downgrades --fix-broken --fix-missing"
     apt -y --allow-downgrades --fix-broken --fix-missing dist-upgrade
 }
 
@@ -80,14 +96,22 @@ function proxy_update()
 }
 
 echo -e ""
-echo -e "${Right}1.国内(清华/中科大/交大源)"
-echo -e "${Right}2.国外(官方源)"
+echo -e "${Right}1.使用当前源直接更新"
+echo -e "${Right}2.国内(清华/中科大/交大源)"
+echo -e "${Right}3.国外(官方源)"
 
 echo -e ""
 echo -n -e "${Info} 请选择: "
 read key
 
 if [ "$key" = "1" ]
+then
+    echo -e ""
+    echo -e "${Info} 更新系统"
+    update
+    remove_clean
+    upgradable
+elif [ "$key" = "2" ]
 then
     echo -e ""
     echo -n -e "${Info} 请选择(清华[qh]/中科大[zkd]/交大[jd]): "
@@ -113,9 +137,10 @@ then
     	sleep 1
 	write_tsinghua_source
     fi
-    (apt -y update --fix-missing && apt -y upgrade && apt -y dist-upgrade)
+    update
     remove_clean
-elif [ "$key" = "2" ]
+    upgradable
+elif [ "$key" = "3" ]
 then
     echo -e ""
     echo -e "${Info} 当前即将选择官网环境(建议配置Proxychains，这样下载速度快一些)"
@@ -128,10 +153,12 @@ then
         write_source
         proxy_update
         remove_clean
+        upgradable
     else
         sleep 1
         write_source
         update
         remove_clean
+        upgradable
     fi
 fi
