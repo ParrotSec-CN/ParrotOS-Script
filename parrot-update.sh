@@ -12,6 +12,24 @@ Blue_red_prefix="\033[46;31m"
 Info="${Font_color_suffix}${Green_font_prefix}[Info]${Clean_color_suffix}"
 Right="${Font_color_suffix}${Green_font_prefix}[ --> ]${Clean_color_suffix}"
 
+function kill_updateprocess()
+{
+    ps -aux | grep apt | awk '{print $2}' | grep -v grep | xargs kill -9 2>/dev/null
+    ps -aux | grep dpkg | awk '{print $2}' | grep -v grep | xargs kill -9 2>/dev/null
+}
+
+function fix_subprocess()
+{
+    mv /var/lib/dpkg/info/ /var/lib/dpkg/info_bak
+    mkdir /var/lib/dpkg/info
+    apt update --fix-missing
+    apt install -f
+    apt autoremove -y
+    mv /var/lib/dpkg/info/* /var/lib/dpkg/info_bak/
+    rm -rf /var/lib/dpkg/info
+    mv /var/lib/dpkg/info_bak/ /var/lib/dpkg/info
+}
+
 function remove_clean()
 {
     echo -e ""
@@ -99,6 +117,8 @@ echo -e ""
 echo -e "${Right}1.使用当前源直接更新"
 echo -e "${Right}2.国内(清华/中科大/交大源)"
 echo -e "${Right}3.国外(官方源)"
+echo -e "${Right}4.修复E:Sub-process /usr/bin/dpkg ..."
+echo -e "${Right}5.杀掉更新进程"
 
 echo -e ""
 echo -n -e "${Info} 请选择: "
@@ -161,4 +181,18 @@ then
         remove_clean
         upgradable
     fi
+elif [ "$key" = "4" ]
+then
+    echo -e ""
+    echo -e "${Info} 修复E:Sub-process /usr/bin/dpkg returned an error code(1)"
+    fix_subprocess
+    echo -e ""
+    echo -e "${Info} 修复完成"
+elif [ "$key" = "5" ]
+then
+    echo -e ""
+    echo -e "${Info} 杀掉更新进程"
+    kill_updateprocess
+    echo -e ""
+    echo -e "${Info} 相关进程均已关闭"
 fi
