@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
-#! -*- coding:utf-8 -*-
+# ! -*- coding:utf-8 -*-
+
 """
   # ParrotSec_invite_key
 """
 import base64
 from flask import request, render_template, abort
-
 from config import app
 
 
 def enc_to_b64(str_encrypt):
     base64_encrypt = base64.b64encode(str_encrypt.encode('utf-8'))
-    return str(base64_encrypt,'utf-8')
+    return str(base64_encrypt, 'utf-8')
 
 
 @app.route("/invite", methods=["POST", "GET"])
@@ -22,7 +22,10 @@ def invite_key():
             add_txt = request.args.get('add')
             if key_txt == "ParrotSec" and add_txt == "qq_group":
                 if request.form.get("code") == "动次打次":
-                    return render_template("invite.html", post_key=True, pwd="动次打次", value="key{parrot_1s_pirates_friend}")
+                    value1 = dict(key="")
+                    value2 = dict(add="")
+                    return render_template("invite.html", post_key=True, pwd="动次打次",
+                                           value="parrot_1s_pirates_friend", value1=value1, value2=value2)
             return render_template("invite.html", post_key=False)
         else:
             abort(500)
@@ -31,8 +34,10 @@ def invite_key():
             key_txt = request.args.get('key')
             add_txt = request.args.get('add')
             if key_txt == "ParrotSec" and add_txt == "qq_group":
-                return render_template("invite.html", get_key=True, pwd="动次打次")
-            elif key_txt == '""' and add_txt == '""':
+                value1 = dict(key="")
+                value2 = dict(add="")
+                return render_template("invite.html", get_key=True, pwd="动次打次", value1=value1, value2=value2)
+            elif key_txt == "get" and add_txt == "get":
                 value1 = dict(key=enc_to_b64("ParrotSec"))
                 value2 = dict(add=enc_to_b64("qq_group"))
                 return render_template("invite.html", value1=value1, value2=value2)
@@ -49,4 +54,4 @@ def page_not_find(e):
 
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0",port=4568)
+    app.run(host="0.0.0.0", port=4568)
