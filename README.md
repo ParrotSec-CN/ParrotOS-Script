@@ -8,7 +8,7 @@ ParrotOS-Script
 ├─ ParrotSec-cn-invite  (Parrot-cn_QQ群问题2)
 ├─ core_zh.php  (官网中文语言文件)
 ├─ powershell-empire  (BC-SECURITY的empire脚本)
-└─ parrot-update.sh  (ParrotOS自定义更新升级脚本)
+└─ parrot-update  (ParrotOS自定义更新升级脚本)
 </code></pre>
 
 > **Proxychains**
