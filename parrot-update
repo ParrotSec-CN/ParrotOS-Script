@@ -1,0 +1,256 @@
+#!/bin/bash
+set -e
+DEBIAN_FRONTEND="noninteractive"
+DEBIAN_PRIORITY="critical"
+DEBCONF_NOWARNINGS="yes"
+export DEBIAN_FRONTEND DEBIAN_PRIORITY DEBCONF_NOWARNINGS
+Green_font_prefix="\033[41;37m"
+Font_color_suffix="\033[5m"
+Clean_color_suffix="\033[0m"
+Blue_red_prefix="\033[46;31m"
+
+Info="${Font_color_suffix}${Green_font_prefix}[Info]${Clean_color_suffix}"
+Right="${Font_color_suffix}${Green_font_prefix}[ --> ]${Clean_color_suffix}"
+
+function kill_updateprocess()
+{
+    ps -aux | grep apt | awk '{print $2}' | grep -v grep | xargs kill -9 2>/dev/null
+    ps -aux | grep dpkg | awk '{print $2}' | grep -v grep | xargs kill -9 2>/dev/null
+}
+
+function fix_subprocess()
+{
+    mv /var/lib/dpkg/info/ /var/lib/dpkg/info_bak
+    mkdir /var/lib/dpkg/info
+    apt update --fix-missing
+    apt install -f
+    apt autoremove -y
+    mv /var/lib/dpkg/info/* /var/lib/dpkg/info_bak/
+    rm -rf /var/lib/dpkg/info
+    mv /var/lib/dpkg/info_bak/ /var/lib/dpkg/info
+}
+
+function remove_clean()
+{
+    echo -e ""
+    echo -e "${Info} 清除无用软件包，并清理相关垃圾文件"
+    apt -y autoremove
+    apt -y clean autoclean
+}
+
+function upgradable()
+{
+    echo -e ""
+    echo -e "${Info} 查看可升级的软件包版本 apt list --upgradable -a"
+    echo -e "${Info} 查看已排除升级的软件包 apt-mark showhold"
+}
+
+function write_source()
+{
+    echo -e ""
+    echo -e "${Info} 执行写入官方源到parrot.list文件"
+    echo -e "" > /etc/apt/sources.list
+    echo -e "# Default Parrot Repository -> stable and tested.\ndeb https://deb.parrot.sh/parrot lory main contrib non-free non-free-firmware\n" > /etc/apt/sources.list.d/parrot.list
+    echo -e "# Security Updates -> this repo should always be enabled in your system.\ndeb https://deb.parrot.sh/parrot lory-security main contrib non-free non-free-firmware\n" >> /etc/apt/sources.list.d/parrot.list
+    echo -e "# Backports -> disable it if you prefer stability and reliability over bleeding edge features.\n#deb https://deb.parrot.sh/parrot lory-backports main contrib non-free non-free-firmware\n" >> /etc/apt/sources.list.d/parrot.list
+    echo -e "# Updates / Testing -> mostly meant to be used by developers and beta testers.\n#deb https://deb.parrot.sh/parrot lory-updates main contrib non-free non-free-firmware\n" >> /etc/apt/sources.list.d/parrot.list
+    echo -e "# Source Code Repositories -> These repositories provide the debian source artifacts of the packages.\n#deb-src https://deb.parrot.sh/parrot lory main contrib non-free non-free-firmware\n#deb-src https://deb.parrot.sh/parrot lory-security main contrib non-free non-free-firmware\n#deb-src https://deb.parrot.sh/parrot lory-backports main contrib non-free non-free-firmware\n#deb-src https://deb.parrot.sh/parrot lory-updates main contrib non-free non-free-firmware" >> /etc/apt/sources.list.d/parrot.list
+}
+
+function write_sjtug_source()
+{
+    echo -e ""
+    echo -e "${Info} 执行写入交大源到parrot.list文件"
+    echo -e "" > /etc/apt/sources.list
+    echo -e "# 默认交大存储库 -> 稳定且经过测试.\ndeb https://mirrors.sjtug.sjtu.edu.cn/parrot lory main contrib non-free non-free-firmware\n" > /etc/apt/sources.list.d/parrot.list
+    echo -e "# 安全更新 -> 这个源应该一直在系统中启用.\ndeb https://mirrors.sjtug.sjtu.edu.cn/parrot lory-security main contrib non-free non-free-firmware\n" >> /etc/apt/sources.list.d/parrot.list
+    echo -e "# 回退补丁 -> 如果你更喜欢稳定和可靠，而不喜欢激进更新的包源就禁用它.\n#deb https://mirrors.sjtug.sjtu.edu.cn/parrot lory-backports main contrib non-free non-free-firmware\n" >> /etc/apt/sources.list.d/parrot.list
+    echo -e "# 更新 / 测试 -> 主要用于开发和测试的工程师.\n#deb https://mirrors.sjtug.sjtu.edu.cn/parrot lory-updates main contrib non-free non-free-firmware\n" >> /etc/apt/sources.list.d/parrot.list
+    echo -e "# 源代码存储库 -> 这些存储库提供debian包的源文件.\n#deb-src https://mirrors.sjtug.sjtu.edu.cn/parrot lory main contrib non-free non-free-firmware\n#deb-src https://mirrors.sjtug.sjtu.edu.cn/parrot lory-security main contrib non-free non-free-firmware\n#deb-src https://mirrors.sjtug.sjtu.edu.cn/parrot lory-backports main contrib non-free non-free-firmware\n#deb-src https://mirrors.sjtug.sjtu.edu.cn/parrot lory-updates main contrib non-free non-free-firmware" >> /etc/apt/sources.list.d/parrot.list
+    echo -e ""
+    echo -e "${Info} 更新系统ing"
+}
+
+function write_ali_source()
+{
+    echo -e ""
+    echo -e "${Info} 执行写入阿里源到parrot.list文件"
+    echo -e "" > /etc/apt/sources.list
+    echo -e "# 默认阿里存储库 -> 稳定且经过测试.\ndeb https://mirrors.aliyun.com/parrot lory main contrib non-free non-free-firmware\n" > /etc/apt/sources.list.d/parrot.list
+    echo -e "# 安全更新 -> 这个源应该一直在系统中启用.\ndeb https://mirrors.aliyun.com/parrot lory-security main contrib non-free non-free-firmware\n" >> /etc/apt/sources.list.d/parrot.list
+    echo -e "# 回退补丁 -> 如果你更喜欢稳定和可靠，而不喜欢激进更新的包源就禁用它.\n#deb https://mirrors.aliyun.com/parrot lory-backports main contrib non-free non-free-firmware\n" >> /etc/apt/sources.list.d/parrot.list
+    echo -e "# 更新 / 测试 -> 主要用于开发和测试的工程师.\n#deb https://mirrors.aliyun.com/parrot lory-updates main contrib non-free non-free-firmware\n" >> /etc/apt/sources.list.d/parrot.list
+    echo -e "# 源代码存储库 -> 这些存储库提供debian包的源文件.\n#deb-src https://mirrors.aliyun.com/parrot lory main contrib non-free non-free-firmware\n#deb-src https://mirrors.aliyun.com/parrot lory-security main contrib non-free non-free-firmware\n#deb-src https://mirrors.aliyun.com/parrot lory-backports main contrib non-free non-free-firmware\n#deb-src https://mirrors.aliyun.com/parrot lory-updates main contrib non-free non-free-firmware" >> /etc/apt/sources.list.d/parrot.list
+    echo -e ""
+    echo -e "${Info} 更新系统ing"
+}
+
+function write_tsinghua_source()
+{
+    echo -e ""
+    echo -e "${Info} 执行写入清华源到parrot.list文件"
+    echo -e "" > /etc/apt/sources.list
+    echo -e "# 默认清华存储库 -> 稳定且经过测试.\ndeb https://mirrors.tuna.tsinghua.edu.cn/parrot lory main contrib non-free non-free-firmware\n" > /etc/apt/sources.list.d/parrot.list
+    echo -e "# 安全更新 -> 这个源应该一直在系统中启用.\ndeb https://mirrors.tuna.tsinghua.edu.cn/parrot lory-security main contrib non-free non-free-firmware\n" >> /etc/apt/sources.list.d/parrot.list
+    echo -e "# 回退补丁 -> 如果你更喜欢稳定和可靠，而不喜欢激进更新的包源就禁用它.\n#deb https://mirrors.tuna.tsinghua.edu.cn/parrot lory-backports main contrib non-free non-free-firmware\n" >> /etc/apt/sources.list.d/parrot.list
+    echo -e "# 更新 / 测试 -> 主要用于开发和测试的工程师.\n#deb https://mirrors.tuna.tsinghua.edu.cn/parrot lory-updates main contrib non-free non-free-firmware\n" >> /etc/apt/sources.list.d/parrot.list
+    echo -e "# 源代码存储库 -> 这些存储库提供debian包的源文件.\n#deb-src https://mirrors.tuna.tsinghua.edu.cn/parrot lory main contrib non-free non-free-firmware\n#deb-src https://mirrors.tuna.tsinghua.edu.cn/parrot lory-security main contrib non-free non-free-firmware\n#deb-src https://mirrors.tuna.tsinghua.edu.cn/parrot lory-backports main contrib non-free non-free-firmware\n#deb-src https://mirrors.tuna.tsinghua.edu.cn/parrot lory-updates main contrib non-free non-free-firmware" >> /etc/apt/sources.list.d/parrot.list
+    echo -e ""
+    echo -e "${Info} 更新系统ing"
+}
+
+function write_ustc_source()
+{
+    echo -e ""
+    echo -e "${Info} 执行写入中科大源到parrot.list文件"
+    echo -e "" > /etc/apt/sources.list
+    echo -e "# 默认清华存储库 -> 稳定且经过测试.\ndeb http://mirrors.ustc.edu.cn/parrot lory main contrib non-free non-free-firmware\n" > /etc/apt/sources.list.d/parrot.list
+    echo -e "# 安全更新 -> 这个源应该一直在系统中启用.\ndeb http://mirrors.ustc.edu.cn/parrot lory-security main contrib non-free non-free-firmware\n" >> /etc/apt/sources.list.d/parrot.list
+    echo -e "# 回退补丁 -> 如果你更喜欢稳定和可靠，而不喜欢激进更新的包源就禁用它.\n#deb http://mirrors.ustc.edu.cn/parrot lory-backports main contrib non-free non-free-firmware\n" >> /etc/apt/sources.list.d/parrot.list
+    echo -e "# 更新 / 测试 -> 主要用于开发和测试的工程师.\n#deb http://mirrors.ustc.edu.cn/parrot lory-updates main contrib non-free non-free-firmware\n" >> /etc/apt/sources.list.d/parrot.list
+    echo -e "# 源代码存储库 -> 这些存储库提供debian包的源文件.\n#deb-src http://mirrors.ustc.edu.cn/parrot lory main contrib non-free non-free-firmware\n#deb-src http://mirrors.ustc.edu.cn/parrot lory-security main contrib non-free non-free-firmware\n#deb-src http://mirrors.ustc.edu.cn/parrot lory-backports main contrib non-free non-free-firmware\n#deb-src http://mirrors.ustc.edu.cn/parrot lory-updates main contrib non-free non-free-firmware" >> /etc/apt/sources.list.d/parrot.list
+    echo -e ""
+    echo -e "${Info} 更新系统ing"
+}
+
+function update()
+{
+    echo -e ""
+    echo -e "${Info} 执行apt update"
+    apt update || echo failed to update index lists
+    echo -e ""
+    echo -e "${Info} 执行dpkg --configure -a"
+    dpkg --configure -a || echo failed to fix interrupted upgrades
+    echo -e ""
+    echo -e "${Info} 执行apt --fix-broken --fix-missing"
+    apt --fix-broken --fix-missing install || echo failed to fix conflicts
+    echo -e ""
+    echo -e "${Info} 执行apt -y --fix-broken --fix-missing full-upgrade"
+    apt -y --fix-broken --fix-missing full-upgrade
+    echo -e ""
+    echo -e "${Info} 执行apt -y full-upgrade"
+    apt -y full-upgrade
+}
+
+function proxy_update()
+{
+    echo -e ""
+    echo -e "${Info} 执行proxychains apt update"
+    proxychains apt update || echo failed to update index lists
+    echo -e ""
+    echo -e "${Info} 执行proxychains dpkg --configure -a"
+    proxychains dpkg --configure -a || echo failed to fix interrupted upgrades
+    echo -e ""
+    echo -e "${Info} 执行proxychains apt --fix-broken --fix-missing"
+    proxychains apt --fix-broken --fix-missing install || echo failed to fix conflicts
+    echo -e ""
+    echo -e "${Info} 执行proxychains apt -y --fix-broken --fix-missing full-upgrade"
+    proxychains apt -y --fix-broken --fix-missing full-upgrade
+    echo -e ""
+    echo -e "${Info} 执行proxychains apt -y full-upgrade"
+    proxychains apt -y full-upgrade
+}
+
+echo -e ""
+echo -e "${Right} 1.使用当前源直接更新"
+echo -e "${Right} 2.国内(清华/阿里/中科大/交大源)"
+echo -e "${Right} 3.国外(官方源)"
+echo -e "${Right} 4.修复E:Sub-process /usr/bin/dpkg ..."
+echo -e "${Right} 5.杀掉apt及dpkg进程"
+echo -e "${Right} 6.清空所有apt缓存包"
+echo -e "${Right} 7.使用Proxychains更新当前源"
+
+echo -e ""
+echo -n -e "${Info} 请选择: "
+read key
+
+if [ "$key" = "1" ]
+then
+    echo -e ""
+    echo -e "${Info} 更新系统"
+    update
+    remove_clean
+    upgradable
+elif [ "$key" = "2" ]
+then
+    echo -e ""
+    echo -n -e "${Info} 请选择(清华[qh]/阿里[al]/中科大[zkd]/交大[jd]) 默认清华源: "
+    read cn_source_key
+    echo -e ""
+    if [ "$cn_source_key" = "qh" ]
+    then
+    	echo -e "${Info} 当前已选择清华源"
+    	sleep 1
+	write_tsinghua_source
+	elif [ "$cn_source_key" = "al" ]
+    then
+    	echo -e "${Info} 当前已选择阿里源"
+    	sleep 1
+	write_ali_source
+    elif [ "$cn_source_key" = "zkd" ]
+    then
+    	echo -e "${Info} 当前已选择中科大源"
+    	sleep 1
+	write_ustc_source
+    elif [ "$cn_source_key" = "jd" ]
+    then
+    	echo -e "${Info} 当前已选择交大源"
+    	sleep 1
+	write_sjtug_source
+    else
+    	echo -e "${Info} 你当前未做出选择，默认选择清华源"
+    	sleep 1
+	write_tsinghua_source
+    fi
+    update
+    remove_clean
+    upgradable
+elif [ "$key" = "3" ]
+then
+    echo -e ""
+    echo -e "${Info} 已选择官方源(建议配置Proxychains，这样下载速度快一些)"
+    write_source
+    echo -e ""
+    echo -n -e "${Info} 你选择使用Proxychains么（Y/N）: "
+    read warning
+    if [ "$warning" = "Y" ] || [ "$warning" = "y" ]
+    then
+        sleep 1
+        proxy_update
+        remove_clean
+        upgradable
+    else
+        sleep 1
+        update
+        remove_clean
+        upgradable
+    fi
+elif [ "$key" = "4" ]
+then
+    echo -e ""
+    echo -e "${Info} 修复E:Sub-process /usr/bin/dpkg returned an error code(1)"
+    fix_subprocess
+    echo -e ""
+    echo -e "${Info} 修复完成"
+elif [ "$key" = "5" ]
+then
+    echo -e ""
+    echo -e "${Info} 杀掉apt及dpkg进程"
+    kill_updateprocess
+    echo -e ""
+    echo -e "${Info} 相关进程均已关闭"
+elif [ "$key" = "6" ]
+then
+    echo -e ""
+    echo -e "${Info} 清空所有apt缓存包"
+    rm -rf /var/lib/apt/lists/*
+    echo -e ""
+    echo -e "${Info} 已清空，请重新更新包仓库"
+elif [ "$key" = "7" ]
+then
+    echo -e ""
+    echo -e "${Info} 使用Proxychains更新"
+    proxy_update
+    remove_clean
+    upgradable
+fi
