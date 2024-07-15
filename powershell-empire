@@ -1,0 +1,24 @@
+#!/bin/bash
+set -e
+
+# Check if running as root
+if [ `id -u` -ne 0 ]; then
+   echo "Error: $0 must be run as root" 1>&2
+   exit 1
+fi
+
+service mariadb start
+
+# Check if the MySQL database empire exists.
+# If the DB does not exist, it will create the DB, the DB user and the
+# user password.
+if ! mysqlshow "empire" > /dev/null 2>&1; then
+    echo "Create mysql database empire"
+    mysql -Bse "CREATE DATABASE empire;"
+    mysql -Bse "CREATE USER empire_user@localhost IDENTIFIED BY 'empire_password';"
+    mysql -Bse "GRANT ALL ON empire.* TO empire_user@localhost;"
+    mysql -Bse "FLUSH PRIVILEGES;"
+fi
+
+cd /usr/share/powershell-empire
+poetry run python3 empire.py ${@}
