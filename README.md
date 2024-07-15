@@ -6,9 +6,8 @@
 ParrotOS-Script
 ├─ README.md
 ├─ ParrotSec-cn-invite  (Parrot-cn_QQ群问题2)
-├─ burpsuite_zh.sh  (启动汉化Burpsuite脚本)
 ├─ core_zh.php  (官网中文语言文件)
-├─ parrot-upgrade.sh  (ParrotOS官方更新升级脚本)
+├─ powershell-empire  (BC-SECURITY的empire脚本)
 └─ parrot-update.sh  (ParrotOS自定义更新升级脚本)
 </code></pre>
 
